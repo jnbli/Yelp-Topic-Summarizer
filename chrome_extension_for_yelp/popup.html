@@ -18,10 +18,27 @@
 <head>
 	<title>Pop Up</title>
 	<script type="text/javascript" src="popup.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Jura:wght@500&display=swap" rel="stylesheet">
 </head>
 <style>
+    .topictext {
+        font-family: monospace;
+        margin: 0px;
+    
+        
+    }
+    .topic {
+        background: transparent;
+        margin: 10px;
+        color:black;
+        font-family: monospace;
+    }
 	.hide {
 		display: none;
+        color: darkslategrey;
+        margin: 10px;
+        text-align: center;
 	}
 	.active {
 		display: block;
@@ -29,18 +46,31 @@
 	.colored {
 		background: orange
 	}
+    .tet{
+        
+    }
 	body {
 	  min-width: 300px; /*700px;*/ /* your desired width */
 	  max-width: 100%;
 	  min-height: 300px; /*550px;*/
 	  position: relative;
 	  vertical-align:middle;
+      font-family: 'Jura', sans-serif;
 	}
+
 
 </style>
 <body>
-	<h2>Yelp Topic Summarizer</h2>
-	<p id="loading">Loading (estimated wait time: 1 minute)...Please do not leave this chrome extension window</p>
+	
+    <img id="loadicon" src="img/loading4.gif" style="width:300px;">
+    <p id="loading", style="margin:5px;">Loading (estimated wait time: 1 minute)... <br> Please do not leave this chrome extension window</p>
+    
+    <div id='newdiv'style="display: none; width:100%;">
+    <img src="img/icon.PNG"  style="margin-top: 0px; float:left; width:20%;">
+    <h3  style = "float:left;width:80%;"> people are talking about:  </h3>
+    </div>
+    
+    
 </body>
 </html>
 

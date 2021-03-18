@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Yelp Summary Extension",
+  "name": "Comments Summarizer",
   "version": "1.2",
   "offline_enabled": true,
 
@@ -18,7 +18,7 @@
   }],
 
   "page_action": {
-    "default_title": "Yelp Summary Extension",
+    "default_title": "Comments Summarizer",
     "default_icon": {
      "19": "img/icon19.png",
      "38": "img/icon38.png"
