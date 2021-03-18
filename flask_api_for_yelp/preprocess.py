@@ -1,54 +1,55 @@
-def get_summary(raw_text, category=''):
+# !pip install spacy
+# !pip install spacytextblob
+# !pip install lemminflect
+# !pip install spacy_langdetect
+# !pip install spacymoji
+# !python -m spacy download en_core_web_md
+# !pip install more_itertools
+# !pip install html2text
+# nltk.download('stopwords')
 
-    # !pip install spacy
-    # !pip install spacytextblob
-    # !pip install lemminflect
-    # !pip install spacy_langdetect
-    # !pip install spacymoji
-    # !python -m spacy download en_core_web_md
-    # !pip install more_itertools
-    # !pip install html2text
-    # nltk.download('stopwords')
+# !pip install bert-extractive-summarizer
+# !pip install torch
 
-    # !pip install bert-extractive-summarizer
-    # !pip install torch
+from html2text import html2text
+import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
+import lemminflect
+from collections import Counter, defaultdict
+from spacy_langdetect import LanguageDetector
+from spacymoji import Emoji
+import pandas as pd
+import numpy as np
+import nltk
+from nltk.corpus import stopwords
+# from afinn import Afinn
+import re
+import json
 
+nlp = spacy.load('en_core_web_md')
+nlp.add_pipe(Emoji(nlp, merge_spans=False), first=True)
+nlp.add_pipe(SpacyTextBlob())
+nlp.add_pipe(LanguageDetector(), name='language_detector', last=True)
 
-    from html2text import html2text
-    import spacy
-    from spacytextblob.spacytextblob import SpacyTextBlob
-    import lemminflect
-    from collections import Counter, defaultdict
-    from spacy_langdetect import LanguageDetector
-    from spacymoji import Emoji
-    import pandas as pd
-    import numpy as np
-    import nltk
-    from nltk.corpus import stopwords
-    from afinn import Afinn
-    import re
-    import json
+# Comment out for quick summary
+from summarizer import Summarizer
+model = Summarizer()
 
+# afinn = Afinn()
 
-    nlp = spacy.load('en_core_web_md')
-    nlp.add_pipe(Emoji(nlp, merge_spans=False), first=True)
-    nlp.add_pipe(SpacyTextBlob())
-    nlp.add_pipe(LanguageDetector(), name='language_detector', last=True)
-
-
+def get_summary(raw_text, category_list=[]):
+    
     # file = 'raw_text.txt'
     # with open(file) as f:
     #     raw_text = html2text(f.read())
     raw_text = html2text(raw_text)
 
-    category = 'Pizza, Italian, Indian'
-    category_list = re.sub('[^a-zA-Z ]','', category.lower()).split()
+    # category = 'Pizza, Italian, Indian'
+    category_str = ' '.join(category_list)
+    # category_list = re.sub('[^a-zA-Z ]','', category.lower()).split()
     category_set = set(category_list)
-    category = nlp(' '.join(category_list))
+    category = nlp(category_str)
 
-
-
-    afinn = Afinn()
 
     doc = nlp(raw_text)
     seen_noun_chunks = set()
@@ -59,7 +60,7 @@ def get_summary(raw_text, category=''):
     nlp_cache = {}
 
 
-    sentencesDF = pd.DataFrame(columns = ['SentenceID', 'SentenceText', 'SentenceTopics', 'SentenceSentiment']) 
+    sentencesDF = pd.DataFrame(columns = ['SentenceID', 'SentenceText', 'SentenceTopics']) 
     topicsDF = pd.DataFrame(columns = ['Topic', 'Frequency', 'SentenceHashes', 'Subjectivity', 'Polarity',  'Relevance']) 
     stop_words = set(stopwords.words('english'))  
 
@@ -91,7 +92,7 @@ def get_summary(raw_text, category=''):
       sent_text = sent_text.replace(',', '')
       sent_associated_with_hash[hash(sent_text)] = sent_text
       topics = []
-      scores = afinn.score(str(sent_text))
+      # scores = afinn.score(str(sent_text))
 
 
       
@@ -155,7 +156,7 @@ def get_summary(raw_text, category=''):
         # print noun chunk relevance to main topic
         noun_chunk_relevance[noun_chunk_text] = noun_chunk.similarity(category)
         # print(noun_chunk.similarity(category), noun_chunk_text)
-      sentencesDF = sentencesDF.append({'SentenceID': hash(sent_text), 'SentenceText' : sent_text, 'SentenceTopics': topics, 'SentenceSentiment' :   scores}, ignore_index = True)
+      sentencesDF = sentencesDF.append({'SentenceID': hash(sent_text), 'SentenceText' : sent_text, 'SentenceTopics': topics}, ignore_index = True)
       
 
 
@@ -188,9 +189,7 @@ def get_summary(raw_text, category=''):
     TBLACK =  '\033[30m'
 
 
-    # Comment out for quick summary
-    # from summarizer import Summarizer
-    # model = Summarizer()
+
 
 
     summary_by_topic = {}
@@ -203,20 +202,20 @@ def get_summary(raw_text, category=''):
             sent_hashes = sent_hashes.tolist()
 
 
-        # Quick Summary
-        result = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in list(sent_hashes)[:3]])
-        result = result.replace('\n', ' ')
-        print(result)
+        # # Quick Summary
+        # result = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in list(sent_hashes)[:3]])
+        # result = result.replace('\n', ' ')
+        # print(result)
 
 
         # Bert Summary
-        # if len(sent_hashes) > 3:
-        #     body = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in sent_hashes]).replace('\n', ' ')
-        #     result = model(body, num_sentences=3)  # Will return 3 sentences
-        #     print(result)
-        # else:
-        #     result = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in sent_hashes])
-        #     print(result)
+        if len(sent_hashes) > 3:
+            body = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in sent_hashes]).replace('\n', ' ')
+            result = model(body, num_sentences=3)  # Will return 3 sentences
+            print(result)
+        else:
+            result = ' '.join([sentencesDF.loc[sentencesDF['SentenceID'] == target_hash, 'SentenceText'].values[0].rstrip('\n') for target_hash in sent_hashes])
+            print(result)
         
         print('\n')
 

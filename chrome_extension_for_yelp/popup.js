@@ -14,7 +14,7 @@ function turnOrange() {
     hides[i].style.display = 'none';
   }
 
-  this.style.background = 'orange';
+  this.style.background = 'gray';
   hide = document.getElementById(this.id + 'text')
   hide.style.display = 'block'
 }
@@ -26,6 +26,8 @@ function setDOMInfo(info) {
   data = info.data
   
   document.getElementById('loading').style.display = 'none';
+  document.getElementById('loadicon').style.display = 'none';
+  document.getElementById('newdiv').style.display = 'block';
 
   buttons = []
   divs = []
@@ -34,12 +36,15 @@ function setDOMInfo(info) {
     button.innerText = topic
     button.classList = ['topic']
     buttons.push(button)
+    
 
     div = document.createElement('div')
     div.innerText = data[topic]
     div.classList = ['hide']
     divs.push(div)
   }
+    
+
 
   for (i=0; i<buttons.length; i++) {
     buttons[i].id = 'topic'+i
